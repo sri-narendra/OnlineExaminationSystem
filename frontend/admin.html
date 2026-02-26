@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Admin Dashboard - Online Exam System</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="js/theme.js"></script>
+<script src="http://localhost:5000/socket.io/socket.io.js"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#135bec",
+                "background-light": "#f6f6f8",
+                "background-dark": "#101622",
+              },
+              fontFamily: {
+                "display": ["Lexend", "sans-serif"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style type="text/tailwindcss">
+        body {
+            font-family: 'Lexend', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen font-display">
+<header class="sticky top-0 z-50 w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex justify-between items-center h-16">
+<div class="flex items-center gap-3">
+<div class="bg-primary p-2 rounded-lg text-white flex items-center justify-center">
+<span class="material-symbols-outlined text-2xl">school</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Admin Dashboard</h1>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="nav-tab text-primary font-semibold text-sm border-b-2 border-primary pb-5 mt-5 cursor-pointer" onclick="switchTab('dashboard', event)">Dashboard</a>
+<a class="nav-tab text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary font-medium text-sm transition-colors cursor-pointer" onclick="switchTab('manage-users', event)">Users</a>
+<a class="nav-tab text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary font-medium text-sm transition-colors cursor-pointer" onclick="switchTab('manage-tests', event)">Exams</a>
+<a class="nav-tab text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary font-medium text-sm transition-colors cursor-pointer" onclick="switchTab('all-results', event)">Results</a>
+<a class="nav-tab text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary font-medium text-sm transition-colors cursor-pointer flex items-center gap-1" onclick="switchTab('live-proctoring', event)">
+    <span class="size-2 bg-red-500 rounded-full animate-pulse"></span> Proctoring
+</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors flex items-center justify-center" onclick="toggleTheme()" id="theme-toggle">
+    <span class="material-symbols-outlined" id="theme-toggle-icon">dark_mode</span>
+</button>
+<button class="relative p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors" onclick="showAlert('No new notifications', 'info')">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2.5 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-900"></span>
+</button>
+<div class="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+<button class="flex items-center gap-2 text-red-500 font-bold text-sm px-3 py-1.5 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all" onclick="logout()">
+<span class="material-symbols-outlined text-lg">logout</span> Sign Out
+</button>
+</div>
+</div>
+</div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<!-- Dashboard Content -->
+<div id="dashboard" class="tab-content transition-all duration-300">
+<div class="mb-10">
+<h2 class="text-3xl font-bold text-slate-900 dark:text-white">System Overview</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Real-time statistics and activity for the Online Exam System.</p>
+</div>
+<div id="dashboard-stats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+<!-- Stats injected here -->
+</div>
+<div class="mt-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+<h4 class="text-lg font-bold text-slate-900 dark:text-white mb-6">Recent System Activity</h4>
+<div class="space-y-6">
+<div class="flex gap-4">
+<div class="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-blue-600">info</span>
+</div>
+<div>
+<p class="text-sm text-slate-900 dark:text-white font-medium">System operational</p>
+<p class="text-xs text-slate-500 mt-1">All modules are running normally. No critical issues detected.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Manage Users -->
+<div id="manage-users" class="tab-content hidden transition-all duration-300">
+<div class="mb-8">
+<h2 class="text-3xl font-bold text-slate-900 dark:text-white">User Management</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Manage student and teacher accounts, including roles and status.</p>
+</div>
+<section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm" id="users-table">
+<thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 uppercase text-[10px] font-bold tracking-wider">
+<tr>
+<th class="px-6 py-4">Name</th>
+<th class="px-6 py-4">Email</th>
+<th class="px-6 py-4">Role</th>
+<th class="px-6 py-4">Joined At</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<!-- Data injected here -->
+</tbody>
+</table>
+</div>
+</section>
+</div>
+
+<!-- Manage Tests -->
+<div id="manage-tests" class="tab-content hidden transition-all duration-300">
+<div class="mb-8">
+<h2 class="text-3xl font-bold text-slate-900 dark:text-white">Exam Management</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Oversee all exams created by teachers and handle system-wide deletions.</p>
+</div>
+<section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm" id="tests-table">
+<thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 uppercase text-[10px] font-bold tracking-wider">
+<tr>
+<th class="px-6 py-4">Exam Title</th>
+<th class="px-6 py-4">Teacher</th>
+<th class="px-6 py-4">Access Code</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<!-- Data injected here -->
+</tbody>
+</table>
+</div>
+</section>
+</div>
+
+<!-- All Results -->
+<div id="all-results" class="tab-content hidden transition-all duration-300">
+<div class="mb-8">
+<h2 class="text-3xl font-bold text-slate-900 dark:text-white">Global Results</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Audit all student submissions and performance across the platform.</p>
+</div>
+<section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm" id="results-table">
+<thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 uppercase text-[10px] font-bold tracking-wider">
+<tr>
+<th class="px-6 py-4">Student</th>
+<th class="px-6 py-4">Exam</th>
+<th class="px-6 py-4">Score</th>
+<th class="px-6 py-4">Submitted At</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<!-- Data injected here -->
+</tbody>
+</table>
+</div>
+</section>
+</div>
+
+<!-- Live Proctoring View -->
+<div id="live-proctoring" class="tab-content hidden transition-all duration-300">
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Global Proctoring</h2>
+            <p class="text-slate-500 dark:text-slate-400 mt-1">Supervise any active examination session across the system.</p>
+        </div>
+        <select id="proctor-exam-select" class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20" onchange="startLiveMonitoring(this.value)">
+            <option value="">Select Exam to Monitor...</option>
+        </select>
+    </div>
+    <div id="proctoring-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="col-span-full py-20 text-center text-slate-500 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+            <span class="material-symbols-outlined text-5xl mb-4 text-slate-300">videocam</span>
+            <p>Select an exam session to view live feeds.</p>
+        </div>
+    </div>
+</div>
+</main>
+
+<script src="config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/admin.js"></script>
+</body></html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Exam Results - Online Exam System</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="js/theme.js"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#135bec",
+                "background-light": "#f6f6f8",
+                "background-dark": "#101622",
+              },
+              fontFamily: {
+                "display": ["Lexend", "sans-serif"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style type="text/tailwindcss">
+        body {
+            font-family: 'Lexend', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen font-display">
+<div class="flex min-h-screen">
+<!-- Sidebar -->
+<aside class="w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col sticky top-0 h-screen z-50">
+<div class="p-6 flex items-center gap-3">
+<div class="bg-primary p-2 rounded-lg text-white flex items-center justify-center">
+<span class="material-symbols-outlined text-2xl">school</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">ExamFlow</h1>
+</div>
+<nav class="flex-1 px-4 space-y-1 mt-4">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-semibold" href="student.html">
+<span class="material-symbols-outlined">dashboard</span> Dashboard
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold bg-primary/10 text-primary border-r-4 border-primary transition-all" href="results.html">
+<span class="material-symbols-outlined">analytics</span> View Results
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-semibold" href="#" onclick="showAlert('Profile settings coming soon', 'info')">
+<span class="material-symbols-outlined">settings</span> Profile Settings
+                </a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<button class="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all font-semibold" onclick="logout()">
+<span class="material-symbols-outlined">logout</span> Sign Out
+                </button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 p-8 lg:p-12 overflow-y-auto">
+<header class="mb-10 flex justify-between items-center">
+<div>
+<h2 class="text-3xl font-bold text-slate-900 dark:text-white">My Exam History</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Review your performance across all completed examinations.</p>
+</div>
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors flex items-center justify-center" onclick="toggleTheme()" id="theme-toggle">
+    <span class="material-symbols-outlined" id="theme-toggle-icon">dark_mode</span>
+</button>
+</header>
+
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 uppercase text-[10px] font-bold tracking-wider">
+<tr>
+<th class="px-6 py-4">Examination Title</th>
+<th class="px-6 py-4">Submission Date</th>
+<th class="px-6 py-4 text-center">Final Score</th>
+<th class="px-6 py-4 text-center">Status</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800" id="results-list">
+<!-- Dynamic content here -->
+</tbody>
+</table>
+</div>
+</div>
+</main>
+</div>
+
+<script src="config.js"></script>
+<script src="js/auth.js"></script>
+<script>
+    checkAuth('student');
+
+    async function loadResults() {
+        const container = document.getElementById('results-list');
+        const response = await apiCall('/student/results');
+
+        if (response.success) {
+            if (response.data.length === 0) {
+                container.innerHTML = `<tr><td colspan="5" class="px-6 py-10 text-center text-slate-500">No examinations completed yet.</td></tr>`;
+                return;
+            }
+
+            container.innerHTML = response.data.map(r => {
+                const isPassed = r.score > 0; // Simple logic for pass status
+                return `
+                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-slate-900 dark:text-white">${r.tests.title}</div>
+                        </td>
+                        <td class="px-6 py-4 text-slate-500 dark:text-slate-400">
+                            ${new Date(r.submitted_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="font-bold text-primary">${r.score} Marks</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex justify-center">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${isPassed ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30' : 'bg-red-100 text-red-600 dark:bg-red-900/30'}">
+                                    ${isPassed ? 'Completed' : 'Failed'}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <a href="result.html?id=${r.id}" class="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-bold transition-colors">
+                                View Report <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        } else {
+            container.innerHTML = `<tr><td colspan="5" class="px-6 py-10 text-center text-red-500">${response.message}</td></tr>`;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadResults);
+</script>
+</body></html>
